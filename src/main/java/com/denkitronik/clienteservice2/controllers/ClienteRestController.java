@@ -1,53 +1,64 @@
 package com.denkitronik.clienteservice2.controllers;
 
 import com.denkitronik.clienteservice2.entities.Cliente;
+import com.denkitronik.clienteservice2.entities.Region;
 import com.denkitronik.clienteservice2.services.IClienteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/cliente-service/clientes")
+@RequestMapping("/api/${api.version}/cliente-service")
+@CrossOrigin(origins = {"http://localhost:4200"})
 public class ClienteRestController {
 
     @Autowired
     private IClienteService clienteService;
 
-    @GetMapping
-    public List<Cliente> index() {
-        return clienteService.findAll();
+    @GetMapping("/clientes")
+    public ResponseEntity<List<Cliente>> listarClientes() {
+        List<Cliente> clientes = clienteService.findAll();
+        return ResponseEntity.ok(clientes);
     }
 
-    @GetMapping("/{id}")
-    public Cliente show(@PathVariable Long id) {
-        return clienteService.findById(id);
-    }
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Cliente create(@RequestBody Cliente cliente) {
-        return clienteService.save(cliente);
-    }
-
-    @PutMapping("/{id}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Cliente update(@RequestBody Cliente cliente, @PathVariable Long id) {
-        Cliente clienteActual = clienteService.findById(id);
-        if (clienteActual != null) {
-            clienteActual.setNombre(cliente.getNombre());
-            clienteActual.setApellido(cliente.getApellido());
-            clienteActual.setEmail(cliente.getEmail());
-            clienteActual.setRegion(cliente.getRegion());
-            return clienteService.save(clienteActual);
+    @GetMapping("/clientes/{id}")
+    public ResponseEntity<?> buscarCliente(@PathVariable Long id) {
+        Optional<Cliente> cliente = clienteService.findById(id);
+        if (cliente.isPresent()) {
+            return ResponseEntity.ok(cliente.get());
         }
-        return null;
+        return ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        clienteService.delete(id);
+    @PostMapping("/clientes")
+    public ResponseEntity<Cliente> crearCliente(@RequestBody Cliente cliente) {
+        Cliente nuevo = clienteService.save(cliente);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
+    }
+
+    @PutMapping("/clientes/{id}")
+    public ResponseEntity<Cliente> actualizarCliente(
+            @PathVariable Long id, @RequestBody Cliente cliente) {
+        if (clienteService.findById(id).isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Cliente actualizado = clienteService.update(id, cliente);
+        return ResponseEntity.ok(actualizado);
+    }
+
+    @DeleteMapping("/clientes")
+    public ResponseEntity<Void> eliminarCliente(@RequestBody Cliente cliente) {
+        clienteService.delete(cliente);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/clientes/regiones")
+    public ResponseEntity<List<Region>> listarRegiones() {
+        List<Region> regiones = clienteService.findAllRegiones();
+        return ResponseEntity.ok(regiones);
     }
 }

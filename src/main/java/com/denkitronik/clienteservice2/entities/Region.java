@@ -1,19 +1,18 @@
 package com.denkitronik.clienteservice2.entities;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import java.io.Serializable;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
 @Entity
 @Table(name = "regiones")
-public class Region implements Serializable {
+@Getter
+@Setter
+public class Region {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String nombre;
-
-    private static final long serialVersionUID = 1L;
 }
